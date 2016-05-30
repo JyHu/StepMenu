@@ -346,7 +346,9 @@ private extension AUUStepMenu {
         
         if data is [Array<AnyObject>] {
             // 如果就是二维数组那直接返回
-            effectiveData = data as! [Array<AnyObject>]
+            for subArr in data as! [Array<AnyObject>] {
+                effectiveData.appendContentsOf(transferToEffectiveDataWithData(subArr))
+            }
         }
         else if data is [AnyObject] {
             // 如果只是一维数组，先判断其中的所有元素是不是包含数组
