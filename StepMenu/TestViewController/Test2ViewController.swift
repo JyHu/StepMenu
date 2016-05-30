@@ -29,11 +29,15 @@ class Test2ViewController: UIViewController, AUUStepMenuDelegate {
         self.view.addSubview(stepMenu)
     }
     
-    func stepMenu(menu: AUUStepMenu, selectedWithMenuIndex menuIndex: Int, menuItemIndexPath indexPath: NSIndexPath, containedItemData data: AnyObject?) -> [AnyObject]? {
+    func stepMenu(menu: AUUStepMenu, selectedWithMenuIndex menuIndex: Int, menuItemIndexPath indexPath: NSIndexPath, containedItemData data: AnyObject?) -> [Array<AnyObject>]? {
         if arc4random_uniform(2) == 0 {
-            var datas:[TestModel] = []
+            var datas:[Array<AnyObject>] = []
             for _ in 0..<arc4random_uniform(10) + 1 {
-                datas.append(TestModel(title: "\(menuIndex) - \(indexPath.row) - \(arc4random_uniform(10000))"))
+                var tempDatas : Array<TestModel> = []
+                for _ in 0 ..< arc4random_uniform(10) + 1 {
+                    tempDatas.append(TestModel(title: "\(menuIndex) - \(indexPath.row) - \(arc4random_uniform(10000))"))
+                }
+                datas.append(tempDatas)
             }
             return datas
         }

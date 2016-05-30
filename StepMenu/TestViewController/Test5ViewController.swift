@@ -1,5 +1,5 @@
 //
-//  Test0ViewController.swift
+//  Test5ViewController.swift
 //  StepMenu
 //
 //  Created by 胡金友 on 16/5/30.
@@ -8,23 +8,18 @@
 
 import UIKit
 
-class Test0ViewController: UIViewController {
+class Test5ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         self.view.backgroundColor = UIColor.whiteColor()
         
-        let testDats = ["A",
-                        "b",
-                        "c",
-                        ["d" : ["e",
-                                "f",
-                                "g", ["h" : ["i" : ["j" : ["k" : "l"]]]]]], "m", "n", "o", "p", "q", "r", "s", "t", "u"]
+        let testData = ["a", "b" , ["c", "d", "e", "r", ["s", "t", "u", ["v" : "w"]]], ["f" : "g"], ["h" : ["i" : ["j" : ["k", "l", "m", "n"]]]], "o", "p"]
         
-        let stepMenu = AUUStepMenu(frame: CGRect(x: 0, y: 120, width: self.view.bounds.size.width, height:200 ), itemSource: testDats)
+        let stepMenu = AUUStepMenu(frame: CGRect(x: 0, y: 64, width: self.view.bounds.size.width, height: self.view.bounds.size.height - 64), itemSource: testData)
         stepMenu.selecteCompletion { (menuIndex, itemIndexPath, itemData) in
-            print("\(menuIndex), \(itemIndexPath), \(itemData)")
+            print("\(menuIndex) - \(itemIndexPath) - \(itemData)")
         }
         self.view.addSubview(stepMenu)
     }

@@ -48,16 +48,7 @@ public typealias AUUStepMenuSelectCompletion = (menuIndex: Int, itemIndexPath: N
      - returns: 下级菜单的数据，如果返回nil，则会根据已经传入的全部数据来判断是否有子目录，如果不是nil，则会根据返回的数据来创建下级目录，传入的itemSource中的数据将会无效。
      - warning: 当添加了datasource代理方法的话，返回值将会无效
      */
-    optional func stepMenu(menu: AUUStepMenu, selectedWithMenuIndex menuIndex: Int, menuItemIndexPath indexPath: NSIndexPath,  containedItemData data: AnyObject?) -> [AnyObject]?
-    
-    /**
-     注册一个自定义的菜单项(UITableViewCell)，此时需要调用"stepMenu:dequenceForMenuItemCell:menuItemData:"方法自己对当前cell填充数据
-     
-     - parameter menu: self
-     
-     - returns: cell的class
-     */
-    optional func stepMenu(registerItemCellClassForMenu menu: AUUStepMenu) -> AnyClass!
+    optional func stepMenu(menu: AUUStepMenu, selectedWithMenuIndex menuIndex: Int, menuItemIndexPath indexPath: NSIndexPath,  containedItemData data: AnyObject?) -> [Array<AnyObject>]?
     
     /**
      对复用的cell进行数据的填充
@@ -131,12 +122,12 @@ public typealias AUUStepMenuSelectCompletion = (menuIndex: Int, itemIndexPath: N
 
 class AUUStepMenu: UIView, UITableViewDelegate, UITableViewDataSource {
 
-    private var cachedItemSource : [AnyObject]!                 // 缓存的最原始的数据
+    private var cachedItemSource : [[AnyObject]]!                 // 缓存的最原始的数据
     private var cachedMaxMenuStepsShown : Int = 3               // 最多可以同时展示多少个菜单
     private var selectCompletion : AUUStepMenuSelectCompletion? // 回调的闭包
     private var menuCount : Int = 0                             // 当前已经展示的菜单的个数
     private var cachedMenuMargin : CGFloat = 0                  // 每个目录之间的间隔
-    
+    private var cachedRegisterCellClass : AnyClass?             // 注册的cell的class
     
     internal var delegate : AUUStepMenuDelegate?        // 代理
     internal var datasource : AUUStepMenuDatasource?    // 数据源
@@ -194,20 +185,11 @@ class AUUStepMenu: UIView, UITableViewDelegate, UITableViewDataSource {
     internal var itemSource : AnyObject? {
         set {
             if let tempSource = newValue {
-                var tempCachedItemSource = Array<AnyObject>()
-                if tempSource is Array<AnyObject> {
-                    tempCachedItemSource = tempSource as! Array<AnyObject>
-                }
-                else if tempSource is Dictionary<String, AnyObject> {
-                    tempCachedItemSource = [tempSource]
-                }
-                else { return }
-                self.cachedItemSource = tempCachedItemSource
+                self.cachedItemSource = self.transferToEffectiveDataWithData(tempSource)
                 self.removeSubmenuBehindTag(__menuStartTag - 1)
                 if self.menuCount > 0 {
                     self.setNeedsLayout()
                 }
-                
                 self.menuCount = 0
             }
         }
@@ -237,13 +219,18 @@ class AUUStepMenu: UIView, UITableViewDelegate, UITableViewDataSource {
         return self.viewWithTag(index + __menuStartTag) as? UITableView
     }
     
+    // 注册菜单项的cell，如果想要自定义的cell，需要在viewdidload之前注册，否则会出问题
+    internal func registerItemCellClass(cellClass: AnyClass!) {
+        self.cachedRegisterCellClass = cellClass
+    }
+    
     override func layoutSubviews() {
         super.layoutSubviews()
         if self.datasource != nil {
             self.addTableWithDatasource(nil, tag: __menuStartTag)
             return
         }
-        self.addTableWithDatasource(self.cachedItemSource as Array<AnyObject>, tag: __menuStartTag)
+        self.addTableWithDatasource(self.cachedItemSource as Array<Array<AnyObject>>, tag: __menuStartTag)
     }
 }
 
@@ -305,7 +292,7 @@ private extension AUUStepMenu {
      - parameter datas: 菜单中对应的数据
      - parameter tag:   菜单所在的table的tag
      */
-    func addTableWithDatasource(datas: Array<AnyObject>?, tag : Int) {
+    func addTableWithDatasource(datas: [Array<AnyObject>]?, tag : Int) {
         if let _ = self.viewWithTag(tag) {
             if tag > __menuStartTag {
                 self.removeSubmenuBehindTag(tag)
@@ -325,15 +312,84 @@ private extension AUUStepMenu {
             self.delegate?.stepMenu?(self, createdMenuTableView: tableView, andMenuIndex: tag - __menuStartTag)
             // 如果没有使用datasource，通知一下是否使用自定义cell
             if self.datasource == nil {
-                if let cellClass = self.delegate?.stepMenu?(registerItemCellClassForMenu: self) {
+                if let cellClass = self.cachedRegisterCellClass {
                     tableView.registerClass(cellClass, forCellReuseIdentifier: __reusefulCellIdentifier)
-                    tableView.useSelfCreatedCell = true
                 }
             }
             self.addSubview(tableView)
             self.menuCount = tag - __menuStartTag + 1
             self.reLayoutSubmenus()
         }
+    }
+    
+    /**
+     将给定的数据组装成二位数组，为了在table中分组展示
+     
+     - parameter data: 要重新组装的数据
+     
+     - returns: 二位数组的数据
+     */
+    func transferToEffectiveDataWithData(data: AnyObject) -> [Array<AnyObject>] {
+        if data is [Array<AnyObject>] {
+            // 如果就是二维数组那直接返回
+            return data as! [Array<AnyObject>]
+        }
+        else if data is [AnyObject] {
+            // 如果只是一维数组，先判断其中的所有元素是不是包含数组
+            var containsArray : Bool = false
+            for value in data as! [AnyObject] {
+                if value is [AnyObject] {
+                    containsArray = true
+                    break
+                }
+            }
+
+            // 如果包含的有数组，则把其中所有的数组都提升一下维度，并将剩余的元素合并到一个数组中
+            if containsArray {
+                var effectiveData : [Array<AnyObject>] = [] // 解析好的二维数组数据
+                var sigleData: [AnyObject] = []             // 单独的元素
+                for obj in data as! [AnyObject] {
+                    if obj is [AnyObject] {
+                        effectiveData.appendContentsOf(mergeSubDatasFromArry(obj as! [AnyObject]))
+                    }
+                    else {
+                        sigleData.append(obj)
+                    }
+                }
+                effectiveData.append(sigleData)
+                return effectiveData
+            }
+            else {
+                return [data as! Array<AnyObject>]
+            }
+        }
+        else {
+            // 如果只是简单地数据类型的话，就直接封装成一个二位数组返回
+            return [[data]]
+        }
+    }
+    
+    /**
+     使用递归的方式，将所有第二维中是数组的元素提取出来合并在一起
+     
+     - parameter data: 要合并的数据
+     
+     - returns: 解析并合并好的二位数组
+     */
+    func mergeSubDatasFromArry(data: Array<AnyObject>) -> Array<Array<AnyObject>> {
+        var mergeData : Array<Array<AnyObject>> = []
+        var singleData : Array<AnyObject> = []
+        for fobj in data {
+            if fobj is [AnyObject] {
+                // 递归去提取
+                mergeData.appendContentsOf(mergeSubDatasFromArry(fobj as! [AnyObject]))
+            }
+            else {
+                singleData.append(fobj)
+            }
+        }
+        mergeData.append(singleData)
+        return mergeData
     }
 }
 
@@ -346,16 +402,15 @@ extension AUUStepMenu {
             return sections >= 0 ? sections : 0
         }
         
-        return 1
+        return (tableView.datasArray?.count)!
     }
-    
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if let datasource = self.datasource {
             // 如果使用了datasource，就必须自己管理所有的菜单
             let rows = datasource.stepMenu(self, numberOfItemsForMenuIndex: tableView.tag - __menuStartTag, groupSection: section)
             return rows >= 0 ? rows : 0
         }
-        if let datas = tableView.datasArray {
+        if let datas = tableView.datasArray?[section] {
             return datas.count
         }
         return 0
@@ -366,10 +421,10 @@ extension AUUStepMenu {
             return datasource.stepMenu(self, cellForMenuIndex: tableView.tag - __menuStartTag, menuItemIndexPath: indexPath)
         }
         
-        if tableView.useSelfCreatedCell {
+        if self.cachedRegisterCellClass != nil {
             // 如果使用了自定义的cell，则数据的填充需要自己去做
             let cell = tableView.dequeueReusableCellWithIdentifier(__reusefulCellIdentifier)
-            self.delegate?.stepMenu!(self, dequenceForMenuItemCell: cell, menuItemData: tableView.datasArray![indexPath.row])
+            self.delegate?.stepMenu!(self, dequenceForMenuItemCell: cell, menuItemData: tableView.datasArray![indexPath.section][indexPath.row])
             
             return cell!
         }
@@ -382,7 +437,7 @@ extension AUUStepMenu {
         }
         
         if let datas = tableView.datasArray {
-            let currentData = datas[indexPath.row]
+            let currentData = datas[indexPath.section][indexPath.row]
             if currentData is String {
                 cell?.textLabel?.text = currentData as? String
             }
@@ -417,7 +472,7 @@ extension AUUStepMenu {
         }
         
         var selectdItemData : AnyObject? = nil  // 被选择的当前菜单项的数据
-        var createMenuTableData : [AnyObject]?  // 创建下一级菜单的数据
+        var createMenuTableData : [Array<AnyObject>]?  // 创建下一级菜单的数据
         
         if tableView.tag < self.menuCount + __menuStartTag - 1 {
             self.removeSubmenuBehindTag(tableView.tag)
@@ -432,22 +487,15 @@ extension AUUStepMenu {
         }
         else {
             if let datas = tableView.datasArray {
-                let currentData = datas[indexPath.row]
+                let currentData = datas[indexPath.section][indexPath.row]
                 selectdItemData = currentData
                 if currentData is Dictionary<String, AnyObject> {
                     let currentDataDict = currentData as! Dictionary<String, AnyObject>
                     
                     // 取出当前菜单项的子数据，并根据子数据创建下级菜单的数据
                     let value = currentDataDict.values.first
-                    if value is String || value is Dictionary<String, AnyObject> {
-                        createMenuTableData = [value!]
-                    }
-                    else if value is Array<AnyObject> {
-                        createMenuTableData = value as? [AnyObject]
-                    }
-                    else {
-                        print("Unrecognized submenu data : \(value)")
-                    }
+                    
+                    createMenuTableData = self.transferToEffectiveDataWithData(value!)
                 }
             }
         }
@@ -477,28 +525,16 @@ extension AUUStepMenu {
 private extension UITableView {
     struct AssociatedKeys {
         static var datasArray : [AnyObject]?
-        static var useSelfCreatedCell : String?
     }
     // 缓存的自身关联的数据源
-    var datasArray : [AnyObject]? {
+    var datasArray : [Array<AnyObject>]? {
         set {
             if let newValue = newValue {
-                objc_setAssociatedObject(self, &AssociatedKeys.datasArray, newValue as [AnyObject], .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                objc_setAssociatedObject(self, &AssociatedKeys.datasArray, newValue as [Array<AnyObject>], .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             }
         }
         get {
-            return objc_getAssociatedObject(self, &AssociatedKeys.datasArray) as? [AnyObject]
-        }
-    }
-    // 缓存是否使用了自定义的cell
-    var useSelfCreatedCell: Bool {
-        set {
-            objc_setAssociatedObject(self, &AssociatedKeys.useSelfCreatedCell, newValue, .OBJC_ASSOCIATION_ASSIGN)
-        }
-        get {
-            let storedValue = objc_getAssociatedObject(self, &AssociatedKeys.useSelfCreatedCell)
-            if let boolValue = storedValue as? Bool { return boolValue }
-            return false
+            return objc_getAssociatedObject(self, &AssociatedKeys.datasArray) as? [Array<AnyObject>]
         }
     }
 }

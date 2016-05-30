@@ -12,6 +12,7 @@
 		1CA360251CFBD1EF006909D8 /* Test2ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CA360241CFBD1EF006909D8 /* Test2ViewController.swift */; };
 		1CA360271CFBD1F7006909D8 /* Test3ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CA360261CFBD1F7006909D8 /* Test3ViewController.swift */; };
 		1CA360291CFBD200006909D8 /* Test4ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CA360281CFBD200006909D8 /* Test4ViewController.swift */; };
+		1CA3602B1CFC2555006909D8 /* Test5ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CA3602A1CFC2555006909D8 /* Test5ViewController.swift */; };
 		1CB255DD1CFA98B400584ACB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB255DC1CFA98B400584ACB /* AppDelegate.swift */; };
 		1CB255DF1CFA98B400584ACB /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB255DE1CFA98B400584ACB /* ViewController.swift */; };
 		1CB255E21CFA98B400584ACB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1CB255E01CFA98B400584ACB /* Main.storyboard */; };
@@ -26,6 +27,7 @@
 		1CA360241CFBD1EF006909D8 /* Test2ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Test2ViewController.swift; sourceTree = "<group>"; };
 		1CA360261CFBD1F7006909D8 /* Test3ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Test3ViewController.swift; sourceTree = "<group>"; };
 		1CA360281CFBD200006909D8 /* Test4ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Test4ViewController.swift; sourceTree = "<group>"; };
+		1CA3602A1CFC2555006909D8 /* Test5ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Test5ViewController.swift; sourceTree = "<group>"; };
 		1CB255D91CFA98B400584ACB /* StepMenu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StepMenu.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1CB255DC1CFA98B400584ACB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		1CB255DE1CFA98B400584ACB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -55,6 +57,7 @@
 				1CA360241CFBD1EF006909D8 /* Test2ViewController.swift */,
 				1CA360261CFBD1F7006909D8 /* Test3ViewController.swift */,
 				1CA360281CFBD200006909D8 /* Test4ViewController.swift */,
+				1CA3602A1CFC2555006909D8 /* Test5ViewController.swift */,
 			);
 			path = TestViewController;
 			sourceTree = "<group>";
@@ -175,6 +178,7 @@
 				1CA360251CFBD1EF006909D8 /* Test2ViewController.swift in Sources */,
 				1CA360231CFBD1E7006909D8 /* Test1ViewController.swift in Sources */,
 				1CB255DD1CFA98B400584ACB /* AppDelegate.swift in Sources */,
+				1CA3602B1CFC2555006909D8 /* Test5ViewController.swift in Sources */,
 				1CB255F01CFA98E100584ACB /* AUUStepMenu.swift in Sources */,
 				1CA360211CFBD0F0006909D8 /* Test0ViewController.swift in Sources */,
 				1CA360291CFBD200006909D8 /* Test4ViewController.swift in Sources */,

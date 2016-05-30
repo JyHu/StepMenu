@@ -45,11 +45,8 @@ class Test3ViewController: UIViewController, AUUStepMenuDelegate {
         stepMenu = AUUStepMenu(frame: CGRectMake(0, 64, self.view.bounds.size.width, self.view.bounds.size.height - 64))
         stepMenu.delegate = self
         stepMenu.itemSource = ["A", "b", "c", ["d" : ["e", "f", "g", ["h" : ["i" : ["j" : ["k" : "l"]]]]]], "m", "n", "o", "p", "q", "r", "s", "t", "u"]
+        stepMenu.registerItemCellClass(TestTableViewCell.self)
         self.view.addSubview(stepMenu)
-    }
-    
-    func stepMenu(registerItemCellClassForMenu: AUUStepMenu) -> AnyClass! {
-        return TestTableViewCell.self
     }
     
     func stepMenu(menu: AUUStepMenu, dequenceForMenuItemCell cell: UITableViewCell!, menuItemData data: AnyObject!) {
@@ -65,11 +62,15 @@ class Test3ViewController: UIViewController, AUUStepMenuDelegate {
         }
     }
     
-    func stepMenu(menu: AUUStepMenu, selectedWithMenuIndex menuIndex: Int, menuItemIndexPath indexPath: NSIndexPath, containedItemData data: AnyObject?) -> [AnyObject]? {
+    func stepMenu(menu: AUUStepMenu, selectedWithMenuIndex menuIndex: Int, menuItemIndexPath indexPath: NSIndexPath, containedItemData data: AnyObject?) -> [Array<AnyObject>]? {
         if arc4random_uniform(2) == 0 {
-            var datas:[TestModel] = []
+            var datas:[Array<AnyObject>] = []
             for _ in 0..<arc4random_uniform(10) + 1 {
-                datas.append(TestModel(title: "\(menuIndex) - \(indexPath.row) - \(arc4random_uniform(10000))"))
+                var tempDatas : Array<TestModel> = []
+                for _ in 0 ..< arc4random_uniform(10) + 1 {
+                    tempDatas.append(TestModel(title: "\(menuIndex) - \(indexPath.row) - \(arc4random_uniform(10000))"))
+                }
+                datas.append(tempDatas)
             }
             return datas
         }

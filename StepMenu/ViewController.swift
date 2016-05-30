@@ -26,7 +26,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                    ["测试1": "Test1ViewController"],
                    ["测试2": "Test2ViewController"],
                    ["测试3": "Test3ViewController"],
-                   ["测试4": "Test4ViewController"]]
+                   ["测试4": "Test4ViewController"],
+                   ["测试5": "Test5ViewController"]]
     }
     
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
