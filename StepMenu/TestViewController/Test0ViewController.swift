@@ -24,7 +24,7 @@ class Test0ViewController: UIViewController {
         
         let stepMenu = AUUStepMenu(frame: CGRect(x: 0, y: 120, width: self.view.bounds.size.width, height:200 ), itemSource: testDats)
         stepMenu.selecteCompletion { (menuIndex, itemIndexPath, itemData) in
-            print("\(menuIndex), \(itemIndexPath), \(itemData)")
+//            print("\(menuIndex), \(itemIndexPath), \(itemData)")
         }
         self.view.addSubview(stepMenu)
     }

@@ -128,10 +128,44 @@ class AUUStepMenu: UIView, UITableViewDelegate, UITableViewDataSource {
     private var menuCount : Int = 0                             // 当前已经展示的菜单的个数
     private var cachedMenuMargin : CGFloat = 0                  // 每个目录之间的间隔
     private var cachedRegisterCellClass : AnyClass?             // 注册的cell的class
+    private var logCount : Int = 0                              // 记录log的个数
     
     internal var delegate : AUUStepMenuDelegate?        // 代理
     internal var datasource : AUUStepMenuDatasource?    // 数据源
     internal var autoDeselsectItemCell : Bool = true    // 是否自动取消点击的效果
+    internal var showDebugLog : Bool = true             // 是否显示log
+    
+    // 设置整个菜单的初始数据源
+    internal var itemSource : AnyObject? {
+        set {
+            if let tempSource = newValue {
+                self.cachedItemSource = self.transferToEffectiveDataWithData(tempSource)
+                self.removeSubmenuBehindTag(__menuStartTag - 1)
+                if self.menuCount > 0 {
+                    self.setNeedsLayout()
+                }
+                self.menuCount = 0
+            }
+            else {
+                self.showMeLog("itemSource set error, please give me validated data")
+            }
+        }
+        get {
+            return self.cachedItemSource
+        }
+    }
+    
+    // 两个菜单之间的间隔
+    internal var menuMargin: CGFloat {
+        set { self.cachedMenuMargin = newValue > 0 ? newValue : 0 }
+        get { return self.cachedMenuMargin }
+    }
+    
+    internal var maxMenuShow : Int {
+        set { self.cachedMaxMenuStepsShown = newValue >= 1 ? newValue : 3 }
+        get { return self.cachedMaxMenuStepsShown }
+    }
+
     
     /**
      初始化方法
@@ -181,34 +215,6 @@ class AUUStepMenu: UIView, UITableViewDelegate, UITableViewDataSource {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // 设置整个菜单的初始数据源
-    internal var itemSource : AnyObject? {
-        set {
-            if let tempSource = newValue {
-                self.cachedItemSource = self.transferToEffectiveDataWithData(tempSource)
-                self.removeSubmenuBehindTag(__menuStartTag - 1)
-                if self.menuCount > 0 {
-                    self.setNeedsLayout()
-                }
-                self.menuCount = 0
-            }
-        }
-        get {
-            return self.cachedItemSource
-        }
-    }
-    
-    // 两个菜单之间的间隔
-    internal var menuMargin: CGFloat {
-        set { self.cachedMenuMargin = newValue > 0 ? newValue : 0 }
-        get { return self.cachedMenuMargin }
-    }
-    
-    internal var maxMenuShow : Int {
-        set { self.cachedMaxMenuStepsShown = newValue >= 1 ? newValue : 3 }
-        get { return self.cachedMaxMenuStepsShown }
-    }
-    
     // 设置选择回调的block
     internal func selecteCompletion(completion : AUUStepMenuSelectCompletion!) {
         self.selectCompletion = completion
@@ -221,6 +227,8 @@ class AUUStepMenu: UIView, UITableViewDelegate, UITableViewDataSource {
     
     // 注册菜单项的cell，如果想要自定义的cell，需要在viewdidload之前注册，否则会出问题
     internal func registerItemCellClass(cellClass: AnyClass!) {
+        // stepMenu(menu: AUUStepMenu, dequenceForMenuItemCell cell: UITableViewCell!, menuItemData data: AnyObject!)
+        self.showMeLog("You register a cell class : \(cellClass), So you must realize method 'stepMenu:dequenceForMenuItemCell:menuItemData' in AUUStepMenuDelegate")
         self.cachedRegisterCellClass = cellClass
     }
     
@@ -281,6 +289,9 @@ private extension AUUStepMenu {
                         table?.removeFromSuperview()
                 })
             }
+            else {
+                self.showMeLog("System Error : Get an unavailable table")
+            }
         }
         self.menuCount = tag - __menuStartTag + 1
         self.reLayoutSubmenus()
@@ -330,9 +341,12 @@ private extension AUUStepMenu {
      - returns: 二位数组的数据
      */
     func transferToEffectiveDataWithData(data: AnyObject) -> [Array<AnyObject>] {
+        
+        var effectiveData : [Array<AnyObject>] = [] // 解析好的二维数组数据
+        
         if data is [Array<AnyObject>] {
             // 如果就是二维数组那直接返回
-            return data as! [Array<AnyObject>]
+            effectiveData = data as! [Array<AnyObject>]
         }
         else if data is [AnyObject] {
             // 如果只是一维数组，先判断其中的所有元素是不是包含数组
@@ -346,7 +360,6 @@ private extension AUUStepMenu {
 
             // 如果包含的有数组，则把其中所有的数组都提升一下维度，并将剩余的元素合并到一个数组中
             if containsArray {
-                var effectiveData : [Array<AnyObject>] = [] // 解析好的二维数组数据
                 var sigleData: [AnyObject] = []             // 单独的元素
                 for obj in data as! [AnyObject] {
                     if obj is [AnyObject] {
@@ -357,16 +370,19 @@ private extension AUUStepMenu {
                     }
                 }
                 effectiveData.append(sigleData)
-                return effectiveData
             }
             else {
-                return [data as! Array<AnyObject>]
+                effectiveData = [data as! Array<AnyObject>]
             }
         }
         else {
             // 如果只是简单地数据类型的话，就直接封装成一个二位数组返回
-            return [[data]]
+            effectiveData = [[data]]
         }
+        
+        self.showMeLog("Rerank the unsupported data with result : \n\(effectiveData)")
+        
+        return effectiveData
     }
     
     /**
@@ -390,6 +406,18 @@ private extension AUUStepMenu {
         }
         mergeData.append(singleData)
         return mergeData
+    }
+    
+    /**
+     打印log
+     
+     - parameter errorInfo: log信息
+     */
+    func showMeLog(logInfo: String) {
+        if self.showDebugLog {
+            self.logCount += 1
+            print("(\(self.logCount)) : \(logInfo)\n")
+        }
     }
 }
 
@@ -451,7 +479,7 @@ extension AUUStepMenu {
                 }
                 else {
                     cell?.textLabel?.text = "Un expected title"
-                    print("Unexpected item data : \(currentData), please give me an answer with method 'stepMenu:menuIndex:unexpectedItemData:forMenuItemIndexPath' in AUUStepMenuDelegate")
+                    self.showMeLog("Unexpected item data : \(currentData), please give me an answer with method 'stepMenu:menuIndex:unexpectedItemData:forMenuItemIndexPath' in AUUStepMenuDelegate")
                 }
             }
         }
@@ -484,6 +512,8 @@ extension AUUStepMenu {
             if hasAdditionalMenu {
                 self.addTableWithDatasource(nil, tag: tableView.tag + 1)
             }
+            
+            self.showMeLog("\(hasAdditionalMenu ? "has" : "do not has") additional menu")
         }
         else {
             if let datas = tableView.datasArray {
@@ -505,9 +535,17 @@ extension AUUStepMenu {
             selectCompletionBlock(menuIndex: tableView.tag - __menuStartTag, itemIndexPath: indexPath, itemData: selectdItemData)
         }
         
+        self.showMeLog("You selected a menu with index \(tableView.tag - __menuStartTag), and menu item is <NSIndexPath(\(indexPath.section)-\(indexPath.row))>, also, current menu item datasource is \(selectdItemData)")
+        
         // 调用选择了菜单项的代理
         if let subMenuData = self.delegate?.stepMenu?(self, selectedWithMenuIndex: tableView.tag - __menuStartTag, menuItemIndexPath: indexPath, containedItemData: selectdItemData) {
             if self.datasource == nil {
+                if createMenuTableData != nil {
+                    self.showMeLog("You give me several datas for creating a new sub menu, so that the data (\(createMenuTableData)) you provided at the begging will be ignored, the data is \(subMenuData)")
+                }
+                else {
+                    self.showMeLog("It'll create a sub menu using your data, the data is \(subMenuData)")
+                }
                 self.addTableWithDatasource(subMenuData, tag: tableView.tag + 1)
             }
             // 以返回的数据为主，如果有返回的数据的话，就直接用这个创建子菜单，否则，继续往下，用上面判断中的数据创建菜单
@@ -516,6 +554,7 @@ extension AUUStepMenu {
         
         // 如果有数据，就创建一个子菜单
         if let finalData = createMenuTableData {
+            self.showMeLog("It'll create a sub menu using the data you provided for me at the begging, the data is \(finalData)")
             self.addTableWithDatasource(finalData, tag: tableView.tag + 1)
         }
     }
