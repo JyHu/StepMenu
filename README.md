@@ -30,11 +30,25 @@
 
 ## 使用说明
 
-### 写在前面对于数据的说明
-
 `StepMenu`可以解析提供的数据，进行菜单的数据填充，对于提供的数据来说，在解析的时候，是需要以二维数组的方式来使用的，所以对于将要使用的数据都会进行校验并解析成合法的数据格式。
+对于其中的每个元素，可以是`String`、`Dictionary`、`Object`等数据类型。
 将数据转换成二维数组如下：
 
 ![](数据转换.png)
 
+说简单点也就是将二维数组中是数组的元素提取出来，在demo中有几个测试的使用方法，最简单的方法那就是直接添加数据了。
+就下面几行代码就能添加一个分级的菜单并接收菜单的选择事件：
 
+```Objective-C
+	// 初始化一个测试的数据源
+	let testDats = ["A", "b", "c", ["d" : ["e", "f", "g", ["h" : ["i" : ["j" : ["k" : "l"]]]]]], "m", "n", "o", "p", "q", "r", "s", "t", "u"]
+    // 添加一个多级菜单
+    let stepMenu = AUUStepMenu(frame: CGRect(x: 0, y: 120, width: self.view.bounds.size.width, height:200 ), itemSource: testDats)
+    // 接收菜单的选择事件
+    stepMenu.selecteCompletion { (menuIndex, itemIndexPath, itemData) in
+        print("\(menuIndex), \(itemIndexPath), \(itemData)")
+    }
+    self.view.addSubview(stepMenu)
+```
+
+还有其他的复杂的用法可以看demo。

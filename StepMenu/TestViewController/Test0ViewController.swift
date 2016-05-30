@@ -15,16 +15,11 @@ class Test0ViewController: UIViewController {
 
         self.view.backgroundColor = UIColor.whiteColor()
         
-        let testDats = ["A",
-                        "b",
-                        "c",
-                        ["d" : ["e",
-                                "f",
-                                "g", ["h" : ["i" : ["j" : ["k" : "l"]]]]]], "m", "n", "o", "p", "q", "r", "s", "t", "u"]
+        let testDats = ["A", "b", "c", ["d" : ["e", "f", "g", ["h" : ["i" : ["j" : ["k" : "l"]]]]]], "m", "n", "o", "p", "q", "r", "s", "t", "u"]
         
         let stepMenu = AUUStepMenu(frame: CGRect(x: 0, y: 120, width: self.view.bounds.size.width, height:200 ), itemSource: testDats)
         stepMenu.selecteCompletion { (menuIndex, itemIndexPath, itemData) in
-//            print("\(menuIndex), \(itemIndexPath), \(itemData)")
+            print("\(menuIndex), \(itemIndexPath), \(itemData)")
         }
         self.view.addSubview(stepMenu)
     }
